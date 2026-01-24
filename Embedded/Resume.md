@@ -36,3 +36,5 @@
 XIP? 是 eXecute In Place? 的缩写，意为“就地执行”。这是 NOR Flash 最关键的特性，指 CPU 可以直接在 Flash 上取指令运行，而无需将代码先复制到 RAM 中。
 Nor flash 支持XIP所以CPU可以直接在上面运行代码
 Nand flash 必须先拷贝到RAM中才能运行
+
+

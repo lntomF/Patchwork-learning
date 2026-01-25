@@ -33,24 +33,17 @@ void UartParseTask(void *argument)
 #if 1 // 使用二值信号量传输
     if( xSemaphoreTake( uart_Semaphore, portMAX_DELAY ) == pdTRUE )
     { 
-      elog_i(LOG_TAG_U,"UartParseTask receive uart_Semaphore success");
       len = BSP_UART_Read(app_uart_rx_buffer, sizeof(app_uart_rx_buffer));
-	    elog_i(LOG_TAG_U, "L:%d ", len);
-      for(i=0;i<len;i++)
+	   elog_i(LOG_TAG_U, "L:%d ", len);
+      if(len>0)
       {
-        Dispatcher_Input(app_uart_rx_buffer[i]);
+        for(i = 0; i < len; i++)
+        {
+          Dispatcher_Input(app_uart_rx_buffer[i]);
+        }
       }
-      
-
-//测试1KB数据转发
-//	if(len>0)
-//	{
-//		// elog_i(LOG_TAG_U,"UartParseTask read data: %d",len);
-//	}
-
-
-
     }
+
 #endif
 	
     osDelay(1);

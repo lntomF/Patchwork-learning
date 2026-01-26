@@ -15,6 +15,8 @@ void UartParseTask(void *argument)
 	uint32_t len,i;
 	TickType_t startTick = xTaskGetTickCount();
 	BSP_UART_Init();
+  BSP_Servo_Init();
+
 	elog_i(LOG_TAG_U, "UartParseTask Started & Ready for DMA");
 	elog_i(LOG_TAG_U,"[%lu]UartParseTask success",startTick);
    

@@ -7,6 +7,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "bsp_servo.h"
+#include "bsp_led_driver.h"
+#include "bsp_mcu_inter_temperature.h"
 
 #define SHELL_MAX_LEN 64
 

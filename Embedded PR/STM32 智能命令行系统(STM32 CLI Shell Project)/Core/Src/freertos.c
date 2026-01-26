@@ -50,7 +50,7 @@
 osThreadId_t uartparseTaskHandle;
 const osThreadAttr_t uartparseTask_attributes = {
   .name = "uartparseTask",
-  .stack_size = 128 * 4,
+  .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 

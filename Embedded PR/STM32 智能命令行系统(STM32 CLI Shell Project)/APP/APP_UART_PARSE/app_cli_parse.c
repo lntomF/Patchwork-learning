@@ -6,13 +6,13 @@ static uint16_t shell_idx; // 存到哪里了，位置记录
 
 /**
  * @brief LED 控制命令
- * @param args 传入的参数字符串，例如 "ON" 或 "OFF"
+ * @param args 传入的参数字符串，例如 "ON" 或 "OFF" 或 "TOGGLE"
  */
 static void Cmd_LED(char *args)
 {
     if (NULL == args)
     {
-        elog_w(LOG_TAG_CLI, "Error: Missing args (ON/OFF)\r\n");
+        elog_w(LOG_TAG_CLI, "Error: Missing args (ON/OFF/TOGGLE)\r\n");
         return;
     }
     char *save_ptr = NULL;
@@ -21,12 +21,23 @@ static void Cmd_LED(char *args)
         return;
     if (0 == strcmp(args1, "ON"))
     {
+        BSP_LED_Set(1);
         elog_i(LOG_TAG_CLI, "LED -> ON\r\n");
     }
     else if (0 == strcmp(args1, "OFF"))
     {
+        BSP_LED_Set(0);
         elog_i(LOG_TAG_CLI, "LED -> OFF\r\n");
+    }else if(0 == strcmp(args1, "TOGGLE"))
+    {
+        BSP_LED_Toggle();
+        elog_i(LOG_TAG_CLI, "LED -> TOGGLE\r\n");
     }
+}
+static void Cmd_get_temp(char *args)
+{
+    float temp = BSP_Get_ChipTemp();
+    elog_i(LOG_TAG_CLI, "Chip Temperature: %.2f C\r\n", temp);
 }
 /**
  * @brief 系统重启
@@ -49,6 +60,7 @@ static void Cmd_Motor(char *args)
     // 这里我们不需要 strtok 了，因为剩下的就是一个纯数字字符串
     // 直接把 args 转成整数
     int speed = atoi(args);
+	BSP_Servo_SetAngle(speed);
     elog_i(LOG_TAG_CLI, "Set Speed -> %d\r\n", speed);
 }
 /**
@@ -69,10 +81,12 @@ static void Cmd_Help(char *args)
     elog_i(LOG_TAG_CLI, "--------------------------\r\n");
 }
 static const Shell_command_t g_shell_cmds[] = {
-    {"LED", Cmd_LED, "Control LED (Usage: LED ON/OFF)"},
-    {"MOTOR", Cmd_Motor, "Set Motor Speed (0-100)"},
-    {"REBOOT", Cmd_Reboot, "Reboot System"},
-    {"HELP", Cmd_Help, "Show help list"},
+    {"LED",     Cmd_LED,        "Control LED (Usage: LED ON/OFF/TOGGLE)"},
+    {"MOTOR",   Cmd_Motor,      "Set Motor Speed (0-100)"},
+    {"REBOOT",  Cmd_Reboot,     "Reboot System"},
+	{"TEMP",    Cmd_get_temp,   "Get chip temperature!"},
+    {"HELP",    Cmd_Help,   "Show help list"}
+	
 };
 // 自动计算命令数量
 const uint8_t g_num_cmd = sizeof(g_shell_cmds) / sizeof(g_shell_cmds[0]);

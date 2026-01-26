@@ -5,7 +5,7 @@
 #include "bsp_uart_driver.h"
 #include "ring_buffer.h"
 #include "app_dispatcher.h"
-
+#include "bsp_servo.h"
 void UartParseTask(void *argument);
 
 

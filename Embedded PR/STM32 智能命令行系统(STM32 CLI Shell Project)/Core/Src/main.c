@@ -167,6 +167,34 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+// --- 这一段是给 FreeRTOS 统计用的 DWT 驱动 ---
+
+// 寄存器定义
+volatile uint32_t *DWT_CYCCNT   = (uint32_t *)0xE0001004; // 周期计数
+volatile uint32_t *DWT_CONTROL  = (uint32_t *)0xE0001000; // DWT控制
+volatile uint32_t *SCB_DEMCR    = (uint32_t *)0xE000EDFC; // 调试控制
+
+// 1. 初始化计数器 (被 FreeRTOS 自动调用)
+void configureTimerForRunTimeStats(void)
+{
+    // 开启 DWT 外设
+    *SCB_DEMCR |= 0x01000000;
+    // 清零计数器
+    *DWT_CYCCNT = 0;
+    // 启动计数
+    *DWT_CONTROL |= 1; 
+}
+
+// 2. 获取当前时间值 (被 FreeRTOS 自动调用)
+unsigned long getRunTimeCounterValue(void)
+{
+    // 方案：除以 1000
+    // 100MHz / 1000 = 100kHz (10us 精度)
+    // 溢出时间延长到：42亿 / (10万 * 100) = 420秒 (7分钟)
+    
+    // 如果想要更久，可以除以 10000 (70分钟)
+   return (*DWT_CYCCNT) >> 4;
+}
 
 /* USER CODE END 4 */
 

@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * File Name          : freertos.c
-  * Description        : Code for freertos applications
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * File Name          : freertos.c
+ * Description        : Code for freertos applications
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2025 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -49,18 +49,18 @@
 /* USER CODE BEGIN Variables */
 osThreadId_t uartparseTaskHandle;
 const osThreadAttr_t uartparseTask_attributes = {
-  .name = "uartparseTask",
-  .stack_size = 512 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+    .name = "uartparseTask",
+    .stack_size = 512 * 4,
+    .priority = (osPriority_t)osPriorityNormal,
 };
-
+volatile uint8_t g_cpu_load_enable = 0;
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
-  .name = "defaultTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+    .name = "defaultTask",
+    .stack_size = 256 * 4,
+    .priority = (osPriority_t)osPriorityNormal,
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -72,17 +72,34 @@ void StartDefaultTask(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
+/* Hook prototypes */
+void configureTimerForRunTimeStats(void);
+unsigned long getRunTimeCounterValue(void);
+
+/* USER CODE BEGIN 1 */
+/* Functions needed when configGENERATE_RUN_TIME_STATS is on */
+__weak void configureTimerForRunTimeStats(void)
+{
+}
+
+__weak unsigned long getRunTimeCounterValue(void)
+{
+  return 0;
+}
+/* USER CODE END 1 */
+
 /**
-  * @brief  FreeRTOS initialization
-  * @param  None
-  * @retval None
-  */
-void MX_FREERTOS_Init(void) {
+ * @brief  FreeRTOS initialization
+ * @param  None
+ * @retval None
+ */
+void MX_FREERTOS_Init(void)
+{
   /* USER CODE BEGIN Init */
-	elog_init();
-	elog_set_fmt(ELOG_LVL_INFO,ELOG_FMT_TAG|ELOG_FMT_TIME|ELOG_FMT_DIR);
-	elog_set_fmt(ELOG_LVL_WARN,ELOG_FMT_TAG|ELOG_FMT_TIME|ELOG_FMT_DIR);
-	elog_start();
+  elog_init();
+  elog_set_fmt(ELOG_LVL_INFO, ELOG_FMT_TAG | ELOG_FMT_TIME | ELOG_FMT_DIR);
+  elog_set_fmt(ELOG_LVL_WARN, ELOG_FMT_TAG | ELOG_FMT_TIME | ELOG_FMT_DIR);
+  elog_start();
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -99,7 +116,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
-	
+
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -114,27 +131,44 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
   /* USER CODE END RTOS_EVENTS */
-
 }
 
 /* USER CODE BEGIN Header_StartDefaultTask */
 /**
-  * @brief  Function implementing the defaultTask thread.
-  * @param  argument: Not used
-  * @retval None
-  */
+ * @brief  Function implementing the defaultTask thread.
+ * @param  argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
   TickType_t startTick = xTaskGetTickCount();
-	elog_i(LOG_TAG_D,"[%lu]StartDefaultTask success",startTick);
-	
+  elog_i(LOG_TAG_D, "[%lu]StartDefaultTask success", startTick);
+
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
-	
-    osDelay(1);
+    if (g_cpu_load_enable == 1)
+    {
+      // --- 模拟高负载 ---
+      // 执行一些毫无意义的计算来消耗 CPU 时间
+      // 这种纯计算循环不会让出 CPU，直到时间片用完
+      uint32_t i;
+      for (i = 0; i < 500000; i++)
+      {
+        __NOP(); // 空指令
+      }
+      // 稍微休息一下（1ms），防止把 CLI 任务彻底饿死，
+      // 否则你连输命令的机会都没有了！
+      osDelay(1);
+    }
+    else
+    {
+      // --- 正常模式 (低负载) ---
+      // 大部分时间都在睡觉
+      osDelay(100);
+    }
   }
   /* USER CODE END StartDefaultTask */
 }
@@ -143,4 +177,3 @@ void StartDefaultTask(void *argument)
 /* USER CODE BEGIN Application */
 
 /* USER CODE END Application */
-
